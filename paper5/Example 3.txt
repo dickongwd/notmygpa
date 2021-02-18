@@ -1,0 +1,35 @@
+# Additional test case to show that the implementation takes care of
+# CPU idle time due to processes arriving later.
+
+Enter number of processes:
+3
+
+Enter time quantum:
+500
+
+Enter burst times of all processes (separated by a space):
+600 1000 1300
+
+Enter arrival times for all processes (separated by a space):
+200 1200 1000
+
+Enter priority for all processes (separated by a space):
+2 2 2
+
++-----+------------+--------------+-----------------+
+| No. | Burst Time | Waiting Time | Turnaround Time |
++-----+------------+--------------+-----------------+
+|   1 |        600 |            0 |             600 |
+|   2 |       1000 |          800 |            1800 |
+|   3 |       1300 |         1000 |            2300 |
++-----+------------+--------------+-----------------+
+
+Average Waiting Time: 600.00
+Average Turnaround Time: 1566.67
+
++------+------+------+------+------+------+------+------+
+| idle | P1   | idle | P3   | P2   | P3   | P2   | P3   |
++------+------+------+------+------+------+------+------+
+0    200    800   1000   1500   2000   2500   3000   3300
+
+Number of context switches: 7

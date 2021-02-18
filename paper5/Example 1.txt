@@ -1,0 +1,36 @@
+# Test data given in paper 5 example 1
+
+Enter number of processes:
+5
+
+Enter time quantum:
+500
+
+Enter burst times of all processes (separated by a space):
+550 800 200 2600 1600
+
+Enter arrival times for all processes (separated by a space):
+0 200 100 400 0
+
+Enter priority for all processes (separated by a space):
+3 1 3 2 2
+
++-----+------------+--------------+-----------------+
+| No. | Burst Time | Waiting Time | Turnaround Time |
++-----+------------+--------------+-----------------+
+|   0 |        550 |            0 |             550 |
+|   1 |        800 |         1550 |            2350 |
+|   2 |        200 |          850 |            1050 |
+|   3 |       2600 |         2750 |            5350 |
+|   4 |       1600 |         3050 |            4650 |
++-----+------------+--------------+-----------------+
+
+Average Waiting Time: 1640.00
+Average Turnaround Time: 2790.00
+
++-----------+--------+-----+----------+----------+--------+----------+----------+----------+------------+----------+------------+
+| P1        | P2     | P3  | P4       | P5       | P2     | P4       | P5       | P4       | P5         | P4       | P4         |
++-----------+--------+-----+----------+----------+--------+----------+----------+----------+------------+----------+------------+
+0         550      950  1150       1650       2150     2550       3050       3550       4050         4650       5150         5750
+
+Number of context switches: 10

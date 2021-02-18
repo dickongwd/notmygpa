@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
 #include "utils.h"
 
 struct ProcessQueue *createQueue()
@@ -7,15 +5,6 @@ struct ProcessQueue *createQueue()
     struct ProcessQueue *queue = (struct ProcessQueue *)malloc(sizeof(struct ProcessQueue));
     memset(queue, 0, sizeof(queue));
     return queue;
-}
-
-struct ProcessInfo *createProcess(int pid, int initial_execution_time)
-{
-    struct ProcessInfo *pinfo = (struct ProcessInfo *)malloc(sizeof(struct ProcessInfo));
-    pinfo->pid = pid;
-    pinfo->initial_execution_time = initial_execution_time;
-    pinfo->remaining_execution_time = initial_execution_time;
-    return pinfo;
 }
 
 void insertIntoQueue(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
@@ -92,4 +81,18 @@ struct ProcessInfo *popQueueFront(struct ProcessQueue *queue)
 
     free(front_node);
     return pinfo;
+}
+
+void destroyQueue(struct ProcessQueue *queue)
+{
+    while (!isQueueEmpty(queue))
+    {
+        free(popQueueFront(queue));
+    }
+    free(queue);
+}
+
+int arrivalTimeComparator(const void *proc1, const void *proc2)
+{
+    return ((struct ProcessInfo *)proc1)->arrival_time - ((struct ProcessInfo *)proc2)->arrival_time;
 }

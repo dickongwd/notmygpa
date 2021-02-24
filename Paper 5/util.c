@@ -284,6 +284,8 @@ int getTimeQuantum()
         if (tq <= 0)
             printf("Time quantum entered is not valid.\n");
     } while (tq <= 0);
+
+    return tq;
 }
 
 void getBurstTime(int n, Process p[])

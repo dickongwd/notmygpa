@@ -11,8 +11,9 @@ void insertIntoQueue(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
 {
     // Create node to insert
     struct Node *new_node = (struct Node *)malloc(sizeof(struct Node));
-    memset(new_node, 0, sizeof(new_node));
     new_node->pinfo = pinfo;
+    new_node->next = NULL;
+    new_node->prev = NULL;
 
     // Insert node into queue in position ordered by remaining execution time
     struct Node *existing_node = queue->front;
@@ -56,6 +57,30 @@ void insertIntoQueue(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
     }
 }
 
+void insertQueueBack(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
+{
+    // Create node to insert
+    struct Node *new_node = (struct Node *)malloc(sizeof(struct Node));
+    new_node->pinfo = pinfo;
+    new_node->next = NULL;
+    new_node->prev = NULL;
+
+    // Insert node into queue in position ordered by remaining execution time
+    struct Node *back_node = queue->back;
+    if (back_node == NULL)
+    {
+        // Empty queue, insert to back
+        queue->front = new_node;
+        queue->back = new_node;
+    }
+    else
+    {
+        back_node->next = new_node;
+        new_node->prev = back_node;
+        queue->back = new_node;
+    }
+}
+
 int isQueueEmpty(struct ProcessQueue *queue)
 {
     // Returns 1 if queue is empty and 0 if queue has contents
@@ -83,6 +108,18 @@ struct ProcessInfo *popQueueFront(struct ProcessQueue *queue)
     return pinfo;
 }
 
+void printQueue(struct ProcessQueue *queue)
+{
+    struct Node *cur = queue->front;
+
+    while (cur != NULL)
+    {
+        printf("%d ", cur->pinfo->pid);
+        cur = cur->next;
+    }
+    printf("\n");
+}
+
 void destroyQueue(struct ProcessQueue *queue)
 {
     while (!isQueueEmpty(queue))
@@ -95,4 +132,9 @@ void destroyQueue(struct ProcessQueue *queue)
 int arrivalTimeComparator(const void *proc1, const void *proc2)
 {
     return ((struct ProcessInfo *)proc1)->arrival_time - ((struct ProcessInfo *)proc2)->arrival_time;
+}
+
+int pidComparator(const void *proc1, const void *proc2)
+{
+    return ((struct ProcessInfo *)proc1)->pid - ((struct ProcessInfo *)proc2)->pid;
 }

@@ -1,12 +1,5 @@
 #include "utils.h"
 
-int getNumProcesses();
-int getTimeQuantum();
-struct ProcessInfo *receiveAndProcessInput(int n);
-void simulateESRR(int n, int time_quantum, struct ProcessInfo *processes);
-void runExistingProcesses(struct ProcessQueue *queue, int *nextCpuIdleTime, int runUntil, int time_quantum);
-void printStats(int n, struct ProcessInfo *processes);
-
 int main(void)
 {
     int n = getNumProcesses();
@@ -38,7 +31,7 @@ struct ProcessInfo *receiveAndProcessInput(int n)
     struct ProcessInfo *processes = malloc(n * sizeof(struct ProcessInfo));
     for (int i = 0; i < n; i++)
     {
-        processes[i].pid = i;
+        processes[i].pid = i + 1;
     }
     printf("Enter burst times of all processes (separated by a space):\n");
     for (int i = 0; i < n; i++)
@@ -78,7 +71,8 @@ void runExistingProcesses(struct ProcessQueue *queue, int *nextCpuIdleTime, int 
 {
     // Runs all the existing processes in the ready queue until nextCpuIdleTime >= runUntil
     // or there are no more processes in the ready queue
-    while (*nextCpuIdleTime < runUntil && !isQueueEmpty(queue))
+    printQueue(queue);
+    while (!isQueueEmpty(queue) && *nextCpuIdleTime < runUntil)
     {
         struct ProcessInfo *current = popQueueFront(queue);
 
@@ -86,19 +80,27 @@ void runExistingProcesses(struct ProcessQueue *queue, int *nextCpuIdleTime, int 
         {
             *nextCpuIdleTime += current->remaining_execution_time;
             current->remaining_execution_time = 0;
-            current->turn_around_time = *nextCpuIdleTime;
+            current->turn_around_time = *nextCpuIdleTime - current->arrival_time;
         }
         else
         {
             current->remaining_execution_time -= time_quantum;
             *nextCpuIdleTime += time_quantum;
-            insertIntoQueue(queue, current);
+            if (*nextCpuIdleTime <= runUntil)
+                insertQueueBack(queue, current);
+            else
+                insertIntoQueue(queue, current);
         }
+        printQueue(queue);
     }
+
+    if (*nextCpuIdleTime < runUntil)
+        *nextCpuIdleTime = runUntil;
 }
 
 void printStats(int n, struct ProcessInfo *processes)
 {
+    qsort(processes, n, sizeof(struct ProcessInfo), pidComparator);
     int total_waiting_time = 0, total_turnaround_time = 0;
     printf("+-----+------------+--------------+-----------------+\n");
     printf("| No. | Burst Time | Waiting Time | Turnaround Time |\n");

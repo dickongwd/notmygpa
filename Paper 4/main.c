@@ -8,14 +8,12 @@ int main(void)
     // sort processes by arrival time
     qsort(processes, n, sizeof(process), compare_arrival_time);
 
-    queue *process_queue = init_queue();
-
     printf("\nRunning simulation...\n\n");
-    simulate_edrr(process_queue, processes, n);
+    simulate_edrr(processes, n);
 
     display_stats(processes, n);
 
-    destroy_queue(process_queue);
+    // clean up
     destroy_processes(processes, n);
 
     return 0;
@@ -53,6 +51,7 @@ process *get_processes_info(int n)
 
 int get_max_burst_time(queue *process_queue)
 {
+    // get the highest burst time from processes in queue
     int bt_max = 0;
     node *curr = process_queue->front;
     while (curr)
@@ -66,15 +65,21 @@ int get_max_burst_time(queue *process_queue)
 
 int get_time_quantum(queue *process_queue)
 {
-
+    // returns 0.8 * the highest burst time
     return get_max_burst_time(process_queue) / 5 * 4;
 }
 
-void do_process(queue *process_queue, int *cpu_time, int *time_quantum)
+void do_process(queue *process_queue, int *cpu_time, int *time_left)
 {
+    // run the first process in queue for either one time quantum
+    // or for the remaining duration of its execution time, whichever is smaller
+    //
+    // note: the algorithm does not appear to account for cpu idling when a process
+    // has been completed before the end of the time quantum
+    // therefore, time_left is set to 0 when the process finishes
     process *proc = dequeue(process_queue);
 
-    if (proc->remaining_time <= *time_quantum)
+    if (proc->remaining_time <= *time_left)
     {
         *cpu_time += proc->remaining_time;
         proc->turnaround_time = *cpu_time;
@@ -82,16 +87,17 @@ void do_process(queue *process_queue, int *cpu_time, int *time_quantum)
     }
     else
     {
-        proc->remaining_time -= *time_quantum;
+        proc->remaining_time -= *time_left;
         enqueue(process_queue, proc);
-        *cpu_time += *time_quantum;
+        *cpu_time += *time_left;
     }
 
-    *time_quantum = 0;
+    *time_left = 0;
 }
 
-void simulate_edrr(queue *process_queue, process *processes, int n)
+void simulate_edrr(process *processes, int n)
 {
+    queue *process_queue = init_queue();
     int cpu_time = 0, next_to_arrive;
 
     // fill up initial process queue at t = 0
@@ -113,10 +119,12 @@ void simulate_edrr(queue *process_queue, process *processes, int n)
     {
         if (queue_length > num_proc_remaining)
         {
+            // peek at the next process in queue
             process *next_proc = peek_front(process_queue);
 
             if (queue_length == 1 || next_proc->burst_time <= time_quantum)
             {
+                // assign CPU to the process for the entire time quantum
                 do
                     do_process(process_queue, &cpu_time, &time_quantum);
                 while (time_quantum);
@@ -130,6 +138,7 @@ void simulate_edrr(queue *process_queue, process *processes, int n)
         }
         else
         {
+            // all shorter processes done, adjust time quantum for the longer tasks
             time_quantum = get_max_burst_time(process_queue);
             num_proc_remaining = 0;
         }
@@ -145,4 +154,7 @@ void simulate_edrr(queue *process_queue, process *processes, int n)
             }
         }
     }
+
+    // clean up
+    destroy_queue(process_queue);
 }

@@ -40,5 +40,5 @@ int get_num_processes();
 process *get_processes_info(int n);
 int get_max_burst_time(queue *process_queue);
 int get_time_quantum(queue *process_queue);
-void do_process(queue *process_queue, int *cpu_time, int *time_quantum);
-void simulate_edrr(queue *process_queue, process *processes, int n);
+void do_process(queue *process_queue, int *cpu_time, int *time_left);
+void simulate_edrr(process *processes, int n);

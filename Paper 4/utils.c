@@ -2,6 +2,8 @@
 
 int compare_arrival_time(const void *proc_a, const void *proc_b)
 {
+    // order 2 processes by ascending arrival times
+    // if the 2 arrival times are the same, order by ascending pid
     if (((process *)proc_a)->arrival_time == ((process *)proc_b)->arrival_time)
         return ((process *)proc_a)->pid - ((process *)proc_b)->pid;
     return (((process *)proc_a)->arrival_time - ((process *)proc_b)->arrival_time);
@@ -48,6 +50,7 @@ int get_queue_length(queue *process_queue)
 
 void enqueue(queue *process_queue, process *proc)
 {
+    // add a new process to the end of the queue
     node *new_node = (node *)malloc(sizeof(node));
     new_node->proc = proc;
     new_node->next = NULL;
@@ -57,6 +60,7 @@ void enqueue(queue *process_queue, process *proc)
     else
     {
         node *curr = process_queue->front;
+        // move to the last node in queue
         while (curr->next)
         {
             curr = curr->next;
@@ -67,6 +71,7 @@ void enqueue(queue *process_queue, process *proc)
 
 process *dequeue(queue *process_queue)
 {
+    // remove the first process in queue and return a pointer to it
     if (!is_empty(process_queue))
     {
         node *front = process_queue->front;
@@ -80,6 +85,7 @@ process *dequeue(queue *process_queue)
 
 process *peek_front(queue *process_queue)
 {
+    // return a pointer to the first process in queue without removing it
     if (!is_empty(process_queue))
     {
         return process_queue->front->proc;
@@ -89,6 +95,7 @@ process *peek_front(queue *process_queue)
 
 void move_front_to_end(queue *process_queue)
 {
+    // move the process at the front of the queue to the end
     enqueue(process_queue, dequeue(process_queue));
 }
 

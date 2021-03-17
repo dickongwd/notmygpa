@@ -3,10 +3,13 @@
 struct ProcessQueue *createQueue()
 {
     struct ProcessQueue *queue = (struct ProcessQueue *)malloc(sizeof(struct ProcessQueue));
-    memset(queue, 0, sizeof(queue));
+    queue->num_processes = 0;
+    queue->front = NULL;
+    queue->back = NULL;
     return queue;
 }
 
+/*
 void insertIntoQueue(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
 {
     // Create node to insert
@@ -56,6 +59,7 @@ void insertIntoQueue(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
         }
     }
 }
+*/
 
 void insertQueueBack(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
 {
@@ -66,8 +70,7 @@ void insertQueueBack(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
     new_node->prev = NULL;
 
     // Insert node into queue in position ordered by remaining execution time
-    struct Node *back_node = queue->back;
-    if (back_node == NULL)
+    if (queue->num_processes == 0)
     {
         // Empty queue, insert to back
         queue->front = new_node;
@@ -75,16 +78,45 @@ void insertQueueBack(struct ProcessQueue *queue, struct ProcessInfo *pinfo)
     }
     else
     {
-        back_node->next = new_node;
-        new_node->prev = back_node;
+        queue->back->next = new_node;
+        new_node->prev = queue->back;
         queue->back = new_node;
+    }
+    ++queue->num_processes;
+}
+
+void sortQueue(struct ProcessQueue *queue)
+{
+    // O(n^2) bubble sort
+    if (queue->num_processes < 2)
+        return;
+
+    int unsorted = 1;
+    struct Node *cur_node, *next_node;
+    while (unsorted)
+    {
+        cur_node = queue->front;
+        unsorted = 0;
+
+        while (cur_node != queue->back)
+        {
+            next_node = cur_node->next;
+            if (cur_node->pinfo->remaining_execution_time > next_node->pinfo->remaining_execution_time)
+            {
+                unsorted = 1;
+                // swap processes to preserve increasing order of node
+                struct ProcessInfo *temp = cur_node->pinfo;
+                cur_node->pinfo = next_node->pinfo;
+                next_node->pinfo = temp;
+            }
+            cur_node = next_node;
+        }
     }
 }
 
 int isQueueEmpty(struct ProcessQueue *queue)
 {
-    // Returns 1 if queue is empty and 0 if queue has contents
-    return queue->front == NULL;
+    return queue->num_processes == 0;
 }
 
 struct ProcessInfo *popQueueFront(struct ProcessQueue *queue)
@@ -105,6 +137,7 @@ struct ProcessInfo *popQueueFront(struct ProcessQueue *queue)
     }
 
     free(front_node);
+    --queue->num_processes;
     return pinfo;
 }
 
@@ -127,14 +160,4 @@ void destroyQueue(struct ProcessQueue *queue)
         free(popQueueFront(queue));
     }
     free(queue);
-}
-
-int arrivalTimeComparator(const void *proc1, const void *proc2)
-{
-    return ((struct ProcessInfo *)proc1)->arrival_time - ((struct ProcessInfo *)proc2)->arrival_time;
-}
-
-int pidComparator(const void *proc1, const void *proc2)
-{
-    return ((struct ProcessInfo *)proc1)->pid - ((struct ProcessInfo *)proc2)->pid;
 }

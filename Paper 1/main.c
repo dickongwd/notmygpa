@@ -52,50 +52,99 @@ void simulateESRR(int n, int time_quantum, struct ProcessInfo *processes)
 {
     qsort(processes, n, sizeof(struct ProcessInfo), arrivalTimeComparator);
 
+    struct EventHeap *events = createPriorityQueue(MAX_NUM_EVENTS);
     struct ProcessQueue *queue = createQueue();
+    int is_cpu_idle = 1;
+    int process_arrived = 0;
 
-    int nextCpuIdleTime = 0;
     for (int i = 0; i < n; i++)
-    {
-        runExistingProcesses(queue, &nextCpuIdleTime, processes[i].arrival_time, time_quantum);
-        insertIntoQueue(queue, &processes[i]);
-        printf("nextCpuIdleTime: %d, arrival time: %d\n", nextCpuIdleTime, processes[i].arrival_time);
-    }
+        insertEvent(events, processes[i].arrival_time, PROCESS_ARRIVE, &processes[i]);
 
-    runExistingProcesses(queue, &nextCpuIdleTime, INT_MAX, time_quantum);
+    while (!isPriorityQueueEmpty(events))
+    {
+        struct Event current_event = *getEarliestEvent(events);
+        popEarliestEvent(events);
+        printEventStatus(&current_event, queue, 0);
+
+        switch (current_event.event_type)
+        {
+        case PROCESS_ARRIVE:
+            sortQueue(queue);
+            if (is_cpu_idle)
+            {
+                is_cpu_idle = 0;
+                runNextProcess(events, current_event.pinfo, time_quantum, current_event.time);
+            }
+            else
+                insertQueueBack(queue, current_event.pinfo);
+
+            process_arrived = 1;
+            break;
+        case TIME_QUANTUM_END:
+            if (current_event.pinfo->remaining_execution_time == 0)
+            {
+                if (isQueueEmpty(queue))
+                {
+                    is_cpu_idle = 1;
+                }
+                else
+                {
+                    if (process_arrived)
+                        sortQueue(queue);
+                    runNextProcess(events, popQueueFront(queue), time_quantum, current_event.time);
+                }
+                current_event.pinfo->turn_around_time = current_event.time - current_event.pinfo->arrival_time;
+            }
+            else
+            {
+                insertQueueBack(queue, current_event.pinfo);
+                if (process_arrived)
+                    sortQueue(queue);
+                runNextProcess(events, popQueueFront(queue), time_quantum, current_event.time);
+            }
+
+            process_arrived = 0;
+            break;
+        }
+
+        printEventStatus(&current_event, queue, 1);
+    }
 
     destroyQueue(queue);
+    destroyPriorityQueue(events);
 }
 
-void runExistingProcesses(struct ProcessQueue *queue, int *nextCpuIdleTime, int runUntil, int time_quantum)
+void runNextProcess(struct EventHeap *events, struct ProcessInfo *next_process, int time_quantum, int current_time)
 {
-    // Runs all the existing processes in the ready queue until nextCpuIdleTime >= runUntil
-    // or there are no more processes in the ready queue
-    printQueue(queue);
-    while (!isQueueEmpty(queue) && *nextCpuIdleTime < runUntil)
+    int next_cycle_length;
+    if (next_process->remaining_execution_time <= time_quantum)
     {
-        struct ProcessInfo *current = popQueueFront(queue);
-
-        if (current->remaining_execution_time <= time_quantum)
-        {
-            *nextCpuIdleTime += current->remaining_execution_time;
-            current->remaining_execution_time = 0;
-            current->turn_around_time = *nextCpuIdleTime - current->arrival_time;
-        }
-        else
-        {
-            current->remaining_execution_time -= time_quantum;
-            *nextCpuIdleTime += time_quantum;
-            if (*nextCpuIdleTime <= runUntil)
-                insertQueueBack(queue, current);
-            else
-                insertIntoQueue(queue, current);
-        }
-        printQueue(queue);
+        next_cycle_length = next_process->remaining_execution_time;
+        next_process->remaining_execution_time = 0;
     }
+    else
+    {
+        next_cycle_length = time_quantum;
+        next_process->remaining_execution_time -= time_quantum;
+    }
+    insertEvent(events, current_time + next_cycle_length, TIME_QUANTUM_END, next_process);
+}
 
-    if (*nextCpuIdleTime < runUntil)
-        *nextCpuIdleTime = runUntil;
+void printEventStatus(struct Event *event, struct ProcessQueue *queue, int is_event_handled)
+{
+    char *event_names[] = {"PROCESS ARRIVE", "TIME QUANTUM END"};
+    if (!is_event_handled)
+    {
+        printf("Time: %d\n", event->time);
+        printf("%s: Process %d\n", event_names[event->event_type], event->pinfo->pid);
+    }
+    else
+        printf("After handling:\n");
+    printf("Processes in queue: ");
+    printQueue(queue);
+
+    if (is_event_handled)
+        printf("\n");
 }
 
 void printStats(int n, struct ProcessInfo *processes)
@@ -118,7 +167,17 @@ void printStats(int n, struct ProcessInfo *processes)
     printf("+-----+------------+--------------+-----------------+\n");
     printf("\n");
 
-    printf("Average Waiting Time: %.2f\n", (double)total_waiting_time / n);
     printf("Average Turnaround Time: %.2f\n", (double)total_turnaround_time / n);
+    printf("Average Waiting Time: %.2f\n", (double)total_waiting_time / n);
     printf("\n");
+}
+
+int arrivalTimeComparator(const void *proc1, const void *proc2)
+{
+    return ((struct ProcessInfo *)proc1)->arrival_time - ((struct ProcessInfo *)proc2)->arrival_time;
+}
+
+int pidComparator(const void *proc1, const void *proc2)
+{
+    return ((struct ProcessInfo *)proc1)->pid - ((struct ProcessInfo *)proc2)->pid;
 }

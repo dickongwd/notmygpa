@@ -196,7 +196,7 @@ int getinput(proc **buffer)
 
     for (int i = 0; i < size; i++)
     {
-        printf("Enter Arrival Time for process %d:\n", i + 1);
+        printf("Enter Burst Time for process %d:\n", i + 1);
         data[i].sequence = i + 1;
         scanf("%f", &data[i].burst_time);
         printf("\n");

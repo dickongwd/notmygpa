@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#define ALTERNATIVE 1
-
+#ifndef UTIL_H
+#define UTIL_H
 
 //Structure for Sorted Linked List 
 typedef struct Nodes{
@@ -12,12 +10,7 @@ typedef struct Nodes{
 } Node;
 
 Node *insert(Node *start, Node *new);
-void print_ll (Node *start);
+void display_stats(Node *processes, int n);
 
-
-Node *start;
-Node *process;
-int num_process;
-int k, t, count;
-float average_tat, average_waiting_time;
+#endif
 

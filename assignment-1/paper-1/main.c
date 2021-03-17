@@ -135,8 +135,8 @@ void printEventStatus(struct Event *event, struct ProcessQueue *queue, int is_ev
     char *event_names[] = {"PROCESS ARRIVE", "TIME QUANTUM END"};
     if (!is_event_handled)
     {
-        printf("Time: %d\n", event->time);
         printf("%s: Process %d\n", event_names[event->event_type], event->pinfo->pid);
+        printf("Time: %d\n", event->time);
     }
     else
         printf("After handling:\n");

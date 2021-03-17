@@ -31,9 +31,7 @@ int main(void)
     int numProcesses = getNumProcess(),
         timeQuantum = getTimeQuantum(),
         currentTime = 0,
-        numProcessesDone = 0,
-        numCurrentProcess = 0,
-        numTasks = 0;
+        numProcessesDone = 0;
 
     Process processes[MAX_NUM_PROCESS];
     memset(processes, 0, sizeof(processes));

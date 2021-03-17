@@ -1,8 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
-
+#define ALTERNATIVE 1
 
 int main()
 {
+    Node *start=NULL;
+    Node *process;
+    int num_process;
+    int k, t, count;
+
     printf("Enter number of processes: ");
     //10
     scanf("%d", &num_process);
@@ -19,7 +26,6 @@ int main()
         process->pid = i+1;
         start = insert(start, process);
     }
-    //print_ll(start);
     
     //Algorithm to select Process
     k=2;
@@ -63,15 +69,7 @@ int main()
     printf("\n---------------------------------");
 
     printf("\n");
-    for (int i=0; i < num_process; i++){
-        printf("\nProcess Number %d: | BT: %d| tat: %d", run[i].pid, run[i].bt, run[i].tat);
-        average_tat += run[i].tat;
-        average_waiting_time += run[i].tat - run[i].bt; 
-    }
-
-    printf("\n");
-    printf("\nAverage waiting time: %.3f", average_waiting_time/num_process);
-    printf("\nAverage turn around time: %.3f", average_tat/num_process);
+    display_stats(run, num_process);
 
     //Clean Up
     free(run);

@@ -2,7 +2,7 @@ all: run
 
 run:
 	gcc main.c utils.c -o main.exe
-	main.exe  run
+	main.exe
 
 test:
 	gcc main.c utils.c -o main.exe

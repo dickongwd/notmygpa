@@ -67,7 +67,10 @@ int get_time_quantum(queue *process_queue)
 {
     // returns max(0.8 * the highest burst time, 1)
     // ensures that the quantum will be at least 1
-    return get_max_burst_time(process_queue) * 4 / 5 || 1;
+    int time_quantum = get_max_burst_time(process_queue) * 4 / 5;
+    if (time_quantum < 1)
+        time_quantum = 1;
+    return time_quantum;
 }
 
 void do_process(queue *process_queue, int *cpu_time, int *time_left)
@@ -115,6 +118,8 @@ void simulate_edrr(process *processes, int n)
                 break;
             }
         }
+
+        // advance time if queue is still empty
         if (!get_queue_length(process_queue))
             cpu_time++;
     }
@@ -149,17 +154,26 @@ void simulate_edrr(process *processes, int n)
             num_proc_remaining = 0;
         }
 
-        // add arrived processes to queue
-        while (next_to_arrive < n)
+        // add more processes to queue
+        while (!get_queue_length(process_queue) && next_to_arrive < n)
         {
-            if (processes[next_to_arrive].arrival_time <= cpu_time)
+            for (; next_to_arrive < n; next_to_arrive++)
             {
-                enqueue(process_queue, processes + next_to_arrive);
-                time_quantum = get_time_quantum(process_queue);
-                next_to_arrive++;
+                if (processes[next_to_arrive].arrival_time <= cpu_time)
+                {
+                    enqueue(process_queue, processes + next_to_arrive);
+                }
+                else
+                {
+                    break;
+                }
             }
+
+            // advance time if queue is still empty
+            if (!get_queue_length(process_queue))
+                cpu_time++;
             else
-                break;
+                time_quantum = get_time_quantum(process_queue);
         }
     }
 

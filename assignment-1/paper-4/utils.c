@@ -11,11 +11,7 @@ int compare_arrival_time(const void *proc_a, const void *proc_b)
 
 void destroy_processes(process *processes, int n)
 {
-    for (int i = 0; i < n; i++)
-    {
-
-        free(processes + i);
-    }
+    free(processes);
 }
 
 queue *init_queue()

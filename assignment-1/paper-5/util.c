@@ -4,7 +4,7 @@
 #include <string.h>
 #include "util.h"
 
-const int MAX_NUM_PROCESS = 10;
+const int MAX_NUM_PROCESS = 100;
 
 void handleProcess(Process *p, int *ct, int *npd)
 {

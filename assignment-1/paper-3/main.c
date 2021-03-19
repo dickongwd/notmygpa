@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-// gcc source3.c && type in | a
+// gcc main.c && type in | a
 
-//#define __DEBUG__
+#define __DEBUG__
 
 #ifdef __DEBUG__
 #define DBG(...) printf(__VA_ARGS__);
@@ -134,11 +134,6 @@ int start(proc *data, int size)
             clock += 1;
             //continue;
         }
-        else if (ready_size == 1) // no split
-        {
-            DBG("[start] No split at time %f\n", clock);
-            run(ready_queue, 1, &clock);
-        }
         else // split and run
         {
             DBG("[start] Split and run %f\n", clock);
@@ -149,16 +144,21 @@ int start(proc *data, int size)
             {
                 if (ready_queue[lsize]->burst_time_remain > MBT)
                 {
-                    lsize = lsize;
                     break;
                 }
             }
             int hsize = ready_size - lsize;
 
-            DBG("[start] About to run light q: %d %d\n", lsize, ready_size);
-            run(ready_queue, lsize, &clock);
-            DBG("[start] About to run heavy q: %d %d\n", hsize, ready_size);
-            run(ready_queue + lsize, hsize, &clock);
+            if (lsize > 0)
+            {
+                DBG("[start] About to run light q: %d %d\n", lsize, ready_size);
+                run(ready_queue, lsize, &clock);
+            }
+            if (hsize > 0)
+            {
+                DBG("[start] About to run heavy q: %d %d\n", hsize, ready_size);
+                run(ready_queue + lsize, hsize, &clock);
+            }
         }
         //sleep(1);
     }
@@ -168,10 +168,12 @@ int start(proc *data, int size)
 
 void display(proc *data, int size)
 {
-    printf("%4s\t %10s\t %10s\n", "Proc", "Turnaround", "Waiting");
+    //printf("%4s\t %10s\t %10s\n", "Proc", "Turnaround", "Waiting");
+    printf("%4s\t %10s\t %10s\t %10s\t %10s\n", "Proc", "Turnaround", "Waiting", "Burst", "Arrival");
     for (int i = 0; i < size; i++)
     {
-        printf("P%-4d\t %10.1f\t %10.1f\n", data[i].sequence, data[i].turnaround_time, data[i].waiting_time);
+        //printf("P%-4d\t %10.1f\t %10.1f\n", data[i].sequence, data[i].turnaround_time, data[i].waiting_time);
+        printf("P%-4d\t %10.1f\t %10.1f\t %10.1f\t %10.1f\n", data[i].sequence, data[i].turnaround_time, data[i].waiting_time, data[i].burst_time, data[i].arrival_time);
     }
 
     float avg_turnaround_time = 0;
@@ -189,27 +191,34 @@ void display(proc *data, int size)
 int getinput(proc **buffer)
 {
     int size;
-    printf("Number of process\n");
+    printf("Number of process(es)\n");
     scanf("%d", &size);
-    proc *data = (proc *)malloc(sizeof(proc) * size);
-    printf("Time for each job in sequence in ms\n");
+    printf("\n");
 
+    if (size <= 0)
+    {
+        printf("Invalid Size\n");
+        return 0;
+    }
+
+    proc *data = (proc *)malloc(sizeof(proc) * size);
+
+    printf("Enter Burst Times for all processes in sequence:\n");
     for (int i = 0; i < size; i++)
     {
-        printf("Enter Burst Time for process %d:\n", i + 1);
         data[i].sequence = i + 1;
         scanf("%f", &data[i].burst_time);
-        printf("\n");
         data[i].burst_time_remain = data[i].burst_time;
         data[i].turnaround_time = 0;
         data[i].waiting_time = 0;
     }
+    printf("\n");
+    printf("Enter Arrival Times for all processes in sequence:\n");
     for (int i = 0; i < size; i++)
     {
-        printf("Enter Arrival Time for process %d:\n", i + 1);
         scanf("%f", &data[i].arrival_time);
-        printf("\n");
     }
+    printf("\n");
 
     *buffer = data;
     return size;
@@ -219,6 +228,15 @@ int main()
 {
     proc *data;
     int size = getinput(&data);
+    if (size == 0)
+    {
+        printf("Ending simulation\n");
+        return 0;
+    }
+    else
+    {
+        printf("Running simulation\n");
+    }
     start(data, size);
     display(data, size);
     free(data);

@@ -2,7 +2,7 @@
 #include "utils.h"
 
 
-//Insert Algorithm for Sorted Linked List 
+//Insert processes into ready queue
 void insert(Node *new) {
     if (!start || new->bt < start->bt){ 
         new->next = start;
@@ -19,6 +19,7 @@ void insert(Node *new) {
     }
 }
 
+//Insert processes into arrival queue
 void enqueue(Node *new){
     if (!arrival_queue || new->arrival_time < arrival_queue->arrival_time){ 
         new->next = arrival_queue;
@@ -37,11 +38,12 @@ void enqueue(Node *new){
 
 
 
-
+//Remove process from arrival queue
 void dequeue(){
     arrival_queue = arrival_queue->next;
 }
 
+//Move processes from arrival queue into ready queue if processes have arrived
 int move_wait_ready(int time){
     Node * process;
 
@@ -61,7 +63,7 @@ int move_wait_ready(int time){
 
 
 
-
+//Print statistics for processes
 void display_stats(Node *processes, int n)
 {
     int total_waiting_time = 0, total_turnaround_time = 0;
@@ -84,13 +86,5 @@ void display_stats(Node *processes, int n)
     printf("Average Waiting Time: %.2f\n", (double)total_waiting_time / n);
     printf("Average Turnaround Time: %.2f\n", (double)total_turnaround_time / n);
     printf("\n");
-}
-
-
-void print_ll (Node *first){
-    while (first != NULL){
-        printf("\nProcess Number %d: | BT: %d| Arrival Time: %d", first->pid, first->bt, first->arrival_time);
-        first = first->next;
-    }    
 }
 

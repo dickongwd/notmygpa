@@ -14,7 +14,6 @@ void insert(Node *new);
 void display_stats(Node *processes, int n);
 void enqueue(Node *new);
 void dequeue();
-void print_ll (Node *start);
 int move_wait_ready(int time);
 
 extern Node *start;

@@ -11,3 +11,10 @@
 | Paper 5 | dik         |
 
 ## Assignment 2
+
+| Task       | Assigned to        |
+| ---------- | ------------------ |
+| Question 1 | yimbozhang         |
+| Question 2 | pwspang            |
+| Question 3 | dik                |
+| Question 4 | yerome<br>yonathan |

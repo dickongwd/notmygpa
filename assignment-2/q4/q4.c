@@ -133,14 +133,24 @@ int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOU
 }
 
 void simulate_starvation() {
+    /*
+    Simulates writer starvation on a read-write lock
+    */
+
+     
 
 }
 
 void simulate_race() {
     /* 
     Illustrates a race condition with 8 processes (non-atomically) incrementing 
-    a single number in 3 files 10000 times
+    a single number in 3 files 100 times
     */
+
+    printf("Simulating race condition with 8 processes and 3 files...\n\n");
+    printf("We will increment to the number in res-1.txt, res-2.txt, and res-3.txt 100 times each,\n");
+    printf("Meaning the final value in each of them should be 800\n\n");
+    
 
     // initialize the values of the 3 resource files to 0 
     initialize_file("res-1.txt");
@@ -175,7 +185,7 @@ void read_file_number(char *file_name) {
     fd = fopen(file_name, "r");
     fscanf(fd, "%d", &curnum);
     fclose(fd);
-    printf("%s has the value %d\n", file_name, curnum);
+    printf("%s has the final value %d\n", file_name, curnum);
 }
 
 void increment_file(char *file_name) {

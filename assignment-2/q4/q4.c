@@ -89,28 +89,6 @@ void generate_random_state(int available[NUM_RESOURCE], int allocation[NUM_PROCE
         }
     }
 
-    // printf("allocation:\n");
-    // for(int i=0;i<NUM_PROCESS;i++) {
-    //     for(int j=0;j<NUM_RESOURCE;j++) {
-    //         printf("%d ", allocation[i][j]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // printf("available:\n");
-    // for(int j=0;j<NUM_RESOURCE;j++) {
-    //     printf("%d ", available[j]);
-    // }
-    // printf("\n");
-
-    // printf("request:\n");
-    // for(int i=0;i<NUM_PROCESS;i++) {
-    //     for(int j=0;j<NUM_RESOURCE;j++) {
-    //         printf("%d ", request[i][j]);
-    //     }
-    //     printf("\n");
-    // }
-
 }
 
 int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOURCE], int request[NUM_PROCESS][NUM_RESOURCE], int finish[NUM_PROCESS]) {
@@ -126,13 +104,6 @@ int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOU
     int change_occured = 1;
     while (change_occured) {
         change_occured = 0;
-
-
-        // printf("work:\n");
-        // for(int j=0;j<NUM_RESOURCE;j++) {
-        //     printf("%d ", work[j]);
-        // }
-        // printf("\n");
 
         for(int i=0;i<NUM_PROCESS;i++) {
             if (finish[i])

@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <pthread.h>
 
-#define NUM_PROCESS 2
+#define NUM_PROCESS 8
 #define NUM_RESOURCE 3
 
 pthread_rwlock_t global_rwlocks[NUM_RESOURCE];
@@ -165,6 +165,10 @@ void simulate_rw_processes() {
         sleep(1);
     }
 
+    // Wait for all threads to terminate before closing
+    for(int i=1;i<NUM_PROCESS;i++) {
+        pthread_join(global_threads[i], NULL);
+    }
 }
 
 void *reader_thread(void *arg) {
@@ -172,11 +176,15 @@ void *reader_thread(void *arg) {
 
     printf("Reader process %d created!\n", id);
 
-    for(int i=0;i<100;i++) {
+    for(int i=0;i<10;i++) {
         for(int j=0;j<NUM_RESOURCE;j++) {
-            if (pthread_rwlock_rdlock(&global_rwlocks[j])) printf("ERRORRR\n");
+            pthread_rwlock_rdlock(&global_rwlocks[j]);
             printf("Reader process %d acquiring lock %d for reading\n", id, j);
-            sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+        }
+        
+        sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+
+        for(int j=0;j<NUM_RESOURCE;j++) {
             pthread_rwlock_unlock(&global_rwlocks[j]);
             printf("Reader process %d released lock %d\n", id, j);
         }
@@ -184,17 +192,23 @@ void *reader_thread(void *arg) {
 }
 
 void *writer_thread(void *arg) {
-
     printf("Writer process created!\n");
 
-    for(int i=0;i<100;i++) {
+    for(int i=0;i<10;i++) {
         for(int j=0;j<NUM_RESOURCE;j++) {
             pthread_rwlock_wrlock(&global_rwlocks[j]);
             printf("Writer process acquiring lock %d for reading\n", j);
-            sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+        }
+
+
+        sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+
+
+        for(int j=0;j<NUM_RESOURCE;j++) {
             pthread_rwlock_unlock(&global_rwlocks[j]);
             printf("Writer process released lock %d\n", j);
         }
+
     }
 }
 

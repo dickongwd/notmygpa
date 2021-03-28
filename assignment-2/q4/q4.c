@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
-#define NUM_PROCESS 5
+#define NUM_PROCESS 8
 #define NUM_RESOURCE 3
 
 
@@ -15,6 +17,12 @@ void simulate_race();
 
 void generate_random_state(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOURCE], int request[NUM_PROCESS][NUM_RESOURCE]);
 int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOURCE], int request[NUM_PROCESS][NUM_RESOURCE], int finish[NUM_PROCESS]);
+
+void read_file_number(char *file_name);
+void increment_file(char *file_name);
+void initialize_file(char *file_name);
+void fork_with_handler(int *is_parent);
+void handle_fork_error();
 
 int main(int argc, char *argv[]) {
     if (argc != 2) 
@@ -158,5 +166,73 @@ void simulate_starvation() {
 }
 
 void simulate_race() {
+    /* 
+    Illustrates a race condition with 8 processes (non-atomically) incrementing 
+    a single number in 3 files 10000 times
+    */
 
+    // initialize the values of the 3 resource files to 0 
+    initialize_file("res-1.txt");
+    initialize_file("res-2.txt");
+    initialize_file("res-3.txt");
+    
+    // Generate 8 processes
+    pid_t wpid;
+    int is_parent = 1, curnum;
+    fork_with_handler(&is_parent);
+    fork_with_handler(&is_parent);
+    fork_with_handler(&is_parent);
+
+    for(int i=0;i<100;i++) {
+        increment_file("res-1.txt");
+        increment_file("res-2.txt");
+        increment_file("res-3.txt");
+    }
+
+    if (is_parent) {
+        while ((wpid = wait(0)) > 0); // Wait for all children to terminate
+        read_file_number("res-1.txt");
+        read_file_number("res-2.txt");
+        read_file_number("res-3.txt");
+    }
+}
+
+void read_file_number(char *file_name) {
+    int curnum;
+    FILE *fd;
+
+    fd = fopen(file_name, "r");
+    fscanf(fd, "%d", &curnum);
+    fclose(fd);
+    printf("%s has the value %d\n", file_name, curnum);
+}
+
+void increment_file(char *file_name) {
+    FILE *fd;
+    int curnum;
+    fd = fopen(file_name, "r");
+    fscanf(fd, "%d", &curnum);
+    fclose(fd);
+
+    fd = fopen(file_name, "w");
+    fprintf(fd, "%d", curnum+1);
+    fclose(fd);
+}
+
+void initialize_file(char *file_name) {
+    FILE *fd = fopen(file_name, "w");
+    fprintf(fd, "%d", 0);
+    fclose(fd);
+}
+
+void fork_with_handler(int *is_parent) {
+    pid_t pid = fork();
+    if (pid < 0) handle_fork_error();
+    *is_parent &= (pid != 0);
+}
+
+
+void handle_fork_error() {
+    printf("Something went wrong while creating the child process\n");
+    exit(0);
 }

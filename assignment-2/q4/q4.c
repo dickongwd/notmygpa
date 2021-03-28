@@ -4,10 +4,13 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
-#define NUM_PROCESS 8
+#define NUM_PROCESS 2
 #define NUM_RESOURCE 3
 
+pthread_rwlock_t global_rwlocks[NUM_RESOURCE];
+pthread_t global_threads[NUM_PROCESS];
 
 void exit_program();
 void simulate_deadlock();
@@ -17,6 +20,11 @@ void simulate_race();
 
 void generate_random_state(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOURCE], int request[NUM_PROCESS][NUM_RESOURCE]);
 int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOURCE], int request[NUM_PROCESS][NUM_RESOURCE], int finish[NUM_PROCESS]);
+
+void initialize_rwlocks();
+void simulate_rw_processes();
+void *reader_thread(void *arg);
+void *writer_thread(void *arg);
 
 void read_file_number(char *file_name);
 void increment_file(char *file_name);
@@ -135,10 +143,59 @@ int is_unsafe(int available[NUM_RESOURCE], int allocation[NUM_PROCESS][NUM_RESOU
 void simulate_starvation() {
     /*
     Simulates writer starvation on a read-write lock
+
+    Unix doesn't have builtin support for interprocess semaphores,
+    so we will be threads to simulate it to reduce the code size
     */
 
-     
+    initialize_rwlocks();
+    simulate_rw_processes();
+}
 
+void initialize_rwlocks() {
+    for(int j=0;j<NUM_RESOURCE;j++)
+        pthread_rwlock_init(&global_rwlocks[j], PTHREAD_RWLOCK_PREFER_READER_NP);
+}
+
+void simulate_rw_processes() {
+    pthread_create(&global_threads[0], NULL, writer_thread, NULL);
+    
+    for(int i=1;i<NUM_PROCESS;i++) {
+        pthread_create(&global_threads[i], NULL, reader_thread, (void *)i);
+        sleep(1);
+    }
+
+}
+
+void *reader_thread(void *arg) {
+    int id = (int)arg;
+
+    printf("Reader process %d created!\n", id);
+
+    for(int i=0;i<100;i++) {
+        for(int j=0;j<NUM_RESOURCE;j++) {
+            if (pthread_rwlock_rdlock(&global_rwlocks[j])) printf("ERRORRR\n");
+            printf("Reader process %d acquiring lock %d for reading\n", id, j);
+            sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+            pthread_rwlock_unlock(&global_rwlocks[j]);
+            printf("Reader process %d released lock %d\n", id, j);
+        }
+    }
+}
+
+void *writer_thread(void *arg) {
+
+    printf("Writer process created!\n");
+
+    for(int i=0;i<100;i++) {
+        for(int j=0;j<NUM_RESOURCE;j++) {
+            pthread_rwlock_wrlock(&global_rwlocks[j]);
+            printf("Writer process acquiring lock %d for reading\n", j);
+            sleep(1 + (rand() % 2)); // Sleep between 1 to 2 seconds to simulate reading
+            pthread_rwlock_unlock(&global_rwlocks[j]);
+            printf("Writer process released lock %d\n", j);
+        }
+    }
 }
 
 void simulate_race() {

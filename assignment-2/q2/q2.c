@@ -112,18 +112,16 @@ int main(int argc, char const *argv[])
 		if (d){
 			//Loop through the directory and print the file information
 			while ((dir = readdir(d)) != NULL){
-				if (dir->d_type == DT_REG){
-					if (stat(dir->d_name, &file_info) == 0){
-						print_stat(&file_info, dir->d_name);
-					} else {
-						return EXIT_FAILURE;
-					}
+				if (stat(dir->d_name, &file_info) == 0){
+					print_stat(&file_info, dir->d_name);
+				} else {
+					return EXIT_FAILURE;
 				}
 			}
 		}
 		closedir(d);
 	}
-		
+	
 	return 0;
 }
 

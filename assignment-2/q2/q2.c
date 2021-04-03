@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <pwd.h>
-#include <sys/sysmacros.h>                          /* To get major() and minor() */
+#include <sys/sysmacros.h>       /* To get major() and minor() */
 #include <time.h>
 #include <dirent.h> //For reading directory 
 
@@ -99,6 +99,7 @@ int main(int argc, char const *argv[])
 
 
 	if (argc > 1){
+		//Loop through the argv and print the input files
 		for (int i = 1; i < argc; i++){
 			if (stat(argv[i], &file_info) == 0){
 				print_stat(&file_info, argv[i]);
@@ -109,6 +110,7 @@ int main(int argc, char const *argv[])
 	} else {
 		d = opendir(".");
 		if (d){
+			//Loop through the directory and print the file information
 			while ((dir = readdir(d)) != NULL){
 				if (dir->d_type == DT_REG){
 					if (stat(dir->d_name, &file_info) == 0){

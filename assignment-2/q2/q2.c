@@ -66,7 +66,7 @@ void print_stat(struct stat * file_info,const char * filename){
 			printf("x");
 		else 
 			printf("-");
-		file_permission = file_permission << 1;
+		file_permission = file_permission << 3;
 	}
 	printf("\n");
 

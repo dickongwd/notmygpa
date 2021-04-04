@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -10,22 +12,7 @@ struct wait_thread_args
     char **command;
 };
 
-void *wait_command(void *args)
-{
-    struct wait_thread_args *thread_args = (struct wait_thread_args *)args;
-    pid_t pid = thread_args->pid;
-    char *command = *(thread_args->command);
-
-    // wait for the command to finish and get its exit status
-    int status;
-    waitpid(pid, &status, 0);
-
-    if (status == 0)
-        printf("Command %s has completed successfully\n", command);
-    else
-        printf("Command %s has not completed successfully\n", command);
-    pthread_exit(0);
-}
+void *wait_command(void *args);
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +31,10 @@ int main(int argc, char *argv[])
             // in child process
             // execute the command
             if (execv(command, command_args) == -1)
-                perror("exevc failed");
+            {
+                fprintf(stderr, "Failed to execute command \"%s\": %s\n", command, strerror(errno));
+                return 1;
+            }
         }
         else if (pid == -1)
         {
@@ -67,8 +57,27 @@ int main(int argc, char *argv[])
         {
             pthread_join(wait_threads[i], NULL);
         }
+
+        printf("All done, bye!\n");
     }
 
-    printf("All done, bye!\n");
     return 0;
+}
+
+void *wait_command(void *args)
+{
+    struct wait_thread_args *thread_args = (struct wait_thread_args *)args;
+    pid_t pid = thread_args->pid;
+    char *command = *(thread_args->command);
+
+    // wait for the command to finish and get its exit status
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (status == 0)
+        printf("Command \"%s\" has completed successfully\n", command);
+    else
+        printf("Command \"%s\" has not completed successfully\n", command);
+
+    pthread_exit(0);
 }

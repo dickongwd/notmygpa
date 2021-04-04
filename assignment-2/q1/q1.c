@@ -57,9 +57,9 @@ int main(int argc, char *argv[])
         {
             pthread_join(wait_threads[i], NULL);
         }
-
-        printf("All done, bye!\n");
     }
+
+    printf("All done, bye!\n");
 
     return 0;
 }

@@ -50,8 +50,18 @@ void print_stat(struct stat * file_info,const char * filename){
 		default:       printf("unknown?\n");                break;
 	}
 
-		//Full access permissions 
+	//Full access permissions 
 	printf("File permissions: ");
+	switch (file_info->st_mode & S_IFMT) {
+		case S_IFBLK:  printf("b");         break;
+		case S_IFCHR:  printf("c");        	break;
+		case S_IFDIR:  printf("d");         break;
+		case S_IFIFO:  printf("p");         break;
+		case S_IFLNK:  printf("l");         break;
+		case S_IFREG:  printf("-");         break;
+		case S_IFSOCK: printf("s");         break;
+		default:       printf("-");         break;
+	}
 	file_permission = file_info->st_mode;
 	for (int i = 0; i < 3; i++){
 		if (file_permission & S_IRUSR)

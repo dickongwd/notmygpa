@@ -1,17 +1,3 @@
-/*
-Write a C program, q1.c,to takes a list of command line arguments, each of which is the full
-path of a command (such as /bin/ls, /bin/ps, /bin/date, /bin/who, /bin/uname etc). Assume
-the number of such commands is N. Your program would create N direct child processes. The
-parent of these child processes is your program. Each child executing one of the N commands.
-You should make sure that these N commands are executed concurrently, not sequentially one
-after the other. The parent process should be waiting for each child process to terminate. When
-a child process terminates, the parent process should print one line on the standard output
-stating that the relevant command has completed successfully or not successfully (such as
-"Command /bin/who has completed successfully", or "Command /bin/who has not completed
-successfully"). Once all the children processes have terminated, the parent process should print
-"All done, bye!" before it itself terminates. Note: Do not use function system in this question.
-You can use the different types of execl function.
-*/
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -30,6 +16,7 @@ void *wait_command(void *args)
     pid_t pid = thread_args->pid;
     char *command = *(thread_args->command);
 
+    // wait for the command to finish and get its exit status
     int status;
     waitpid(pid, &status, 0);
 
@@ -54,16 +41,20 @@ int main(int argc, char *argv[])
         pid = fork();
         if (pid == 0)
         {
+            // in child process
+            // execute the command
             if (execv(command, command_args) == -1)
-                perror("exevc");
+                perror("exevc failed");
         }
         else if (pid == -1)
         {
-            perror("fork");
+            perror("fork failed");
             return 1;
         }
         else
         {
+            // in parent process
+            // create a thread to wait for command to finish
             struct wait_thread_args thread_args = {pid, argv + i};
             pthread_create(wait_threads + i - 1, NULL, wait_command, (void *)&thread_args);
         }
@@ -71,6 +62,7 @@ int main(int argc, char *argv[])
 
     if (pid != 0)
     {
+        // wait for all wait threads (i.e. commands) to finish
         for (int i = 0; i < argc - 1; i++)
         {
             pthread_join(wait_threads[i], NULL);
